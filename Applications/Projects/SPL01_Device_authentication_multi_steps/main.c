@@ -4,7 +4,7 @@
  * @author  CS application team
  * @brief   STSAFE-L010 Device authentication multi steps example
  ******************************************************************************
- *           			COPYRIGHT 2022 STMicroelectronics
+ *                              COPYRIGHT 2022 STMicroelectronics
  *
  * This software is licensed under terms that can be found in the LICENSE file in
  * the root directory of this software component.
@@ -19,7 +19,7 @@
 
 /* Defines -------------------------------------------------------------------*/
 
-/* Root CA key used for STSE-L SPL01 */
+/* Root CA key used for STSAFE-L010 SPL01 */
 #define CA_SELF_SIGNED_CERTIFICATE_01                                                                   \
     0x30, 0x82, 0x01, 0x67, 0x30, 0x82, 0x01, 0x19, 0xa0, 0x03, 0x02, 0x01, 0x02, 0x02, 0x01, 0x01,     \
         0x30, 0x05, 0x06, 0x03, 0x2b, 0x65, 0x70, 0x30, 0x4b, 0x31, 0x0b, 0x30, 0x09, 0x06, 0x03, 0x55, \
@@ -65,7 +65,7 @@
  */
 int main(void) {
     stse_ReturnCode_t stse_ret = STSE_API_INVALID_PARAMETER;
-    stse_Handler_t stse_handler;
+    stse_Handler_t stse_handle;
     PLAT_UI16 certificate_size;
     stse_certificate_t parsed_stse_certificate;
     stse_certificate_t parsed_ca_selfsigned_cert;
@@ -74,70 +74,72 @@ int main(void) {
     /* Initialize Terminal */
     apps_terminal_init(115200);
 
-    /* - Print Example instruction on terminal */
+    /* ## Print Example instruction on terminal */
     printf("----------------------------------------------------------------------------------------------------------------");
-    printf("\n\r-                          STSAFE-L010 Multi-Steps Device Authentication Example                               -");
+    printf("\n\r-                       STSAFE-L010 SPL01 Multi-Steps Device Authentication Example                            -");
     printf("\n\r----------------------------------------------------------------------------------------------------------------");
     printf("\n\r- This example illustrates STSAFE-L010 device authentication process using Multi-Step approach.                -");
     printf("\n\r- it can be taken as reference for building distant server authentication use cases.                           -");
     printf("\n\r----------------------------------------------------------------------------------------------------------------");
+    printf("\n\n\r ( Press key to continue )");
+    uart_getc();
 
-    /* ## Initialize STSAFE-A1xx device handler */
-    stse_ret = stse_set_default_handler_value(&stse_handler);
+    /* ## Initialize STSAFE-L010 device handler */
+    stse_ret = stse_set_default_handler_value(&stse_handle);
     if (stse_ret != STSE_OK) {
-        printf(PRINT_RED "\n\r ## stse_set_default_handler_value ERROR : 0x%04X\n\r", stse_ret);
+        printf("\n\n\r ## stse_set_default_handler_value : "PRINT_RED"ERROR 0x%04X"PRINT_RESET"\n\r", stse_ret);
         apps_process_error(stse_ret);
     }
 
-    stse_handler.device_type = STSAFE_L010;
-    stse_handler.io.busID = 1;
-    stse_handler.io.BusSpeed = 100;
-    stse_handler.io.Devaddr = 0x0C;
+    stse_handle.device_type = STSAFE_L010;
+    stse_handle.io.BusType = STSE_BUS_TYPE_I2C;
+    stse_handle.io.BusSpeed = 100;
+    stse_handle.io.Devaddr = 0x0C;
 
-    printf("\n\r - Initialize target STSAFE-L010");
-    stse_ret = stse_init(&stse_handler);
+    printf("\n\n\r ## Initialize target STSAFE-L010");
+    stse_ret = stse_init(&stse_handle);
     if (stse_ret != STSE_OK) {
-        printf(PRINT_RED "\n\r ## stse_init ERROR : 0x%04X\n\r", stse_ret);
+        printf("\n\r ## stse_init : "PRINT_RED"ERROR 0x%04X"PRINT_RESET"\n\r", stse_ret);
         apps_process_error(stse_ret);
     }
 
     /* ## Parse CA self-signed certificate */
     stse_ret = stse_certificate_parse(ca_selfsigned_cert, &parsed_ca_selfsigned_cert, NULL);
     if (stse_ret != STSE_OK) {
-        printf(PRINT_RED "\n\n\r## ST CA stse_certificate_parse ERROR : 0x%04X", stse_ret);
+        printf("\n\n\r## ST CA stse_certificate_parse ERROR : 0x%04X", stse_ret);
         apps_process_error(stse_ret);
     }
     printf("\n\n\r## CA self-signed certificate : \n\r");
     stse_certificate_print_parsed_cert(&parsed_ca_selfsigned_cert);
 
-    /* ## Get target STSE-Lxxx Certificate  */
-    stse_ret = stse_get_device_certificate_size(&stse_handler, STSAFE_CERTIFICATE_ZONE_0, &certificate_size);
+    /* ## Get target STSAFE-L010 Certificate  */
+    stse_ret = stse_get_device_certificate_size(&stse_handle, STSAFE_CERTIFICATE_ZONE_0, &certificate_size);
     if (stse_ret != STSE_OK) {
-        printf(PRINT_RED "\n\n\r## stse_get_device_certificate_size ERROR : 0x%04X", stse_ret);
+        printf("\n\n\r## stse_get_device_certificate_size : "PRINT_RED"ERROR 0x%04X"PRINT_RESET"\n\r", stse_ret);
         apps_process_error(stse_ret);
     }
 
     PLAT_UI8 stse_certificate[certificate_size];
 
-    stse_ret = stse_get_device_certificate(&stse_handler, STSAFE_CERTIFICATE_ZONE_0, certificate_size, stse_certificate);
+    stse_ret = stse_get_device_certificate(&stse_handle, STSAFE_CERTIFICATE_ZONE_0, certificate_size, stse_certificate);
     if (stse_ret != STSE_OK) {
-        printf(PRINT_RED "\n\n\r## stse_get_device_certificate ERROR : 0x%04X", stse_ret);
+        printf("\n\n\r## stse_get_device_certificate : "PRINT_RED"ERROR 0x%04X"PRINT_RESET"\n\r", stse_ret);
         apps_process_error(stse_ret);
     }
 
-    /* ## Parse target STSAFE-Lxxx certificate */
+    /* ## Parse target STSAFE-L010 certificate */
     stse_ret = stse_certificate_parse(stse_certificate, &parsed_stse_certificate, NULL);
     if (stse_ret != STSE_OK) {
-        printf(PRINT_RED "\n\n\r## STSE stse_certificate_parse ERROR : 0x%04X", stse_ret);
+        printf("\n\n\r## STSAFE-L010 stse_certificate_parse : "PRINT_RED"ERROR 0x%04X"PRINT_RESET"\n\r", stse_ret);
         apps_process_error(stse_ret);
     }
-    printf("\n\n\r## Target STSAFE-Axxx certificate : \n\r");
+    printf("\n\n\r## Target STSAFE-L010 certificate : \n\r");
     stse_certificate_print_parsed_cert(&parsed_stse_certificate);
 
-    /* ## Verify STSE Certificate with CA self-signed Certificate */
+    /* ## Verify STSAFE-L010 Certificate with CA self-signed Certificate */
     stse_ret = stse_certificate_is_parent(&parsed_ca_selfsigned_cert, &parsed_stse_certificate, NULL);
     if (stse_ret != STSE_OK) {
-        printf(PRINT_RED "\n\n\r## stse_certificate_is_parent ERROR : 0x%04X", stse_ret);
+        printf("\n\n\r## stse_certificate_is_parent : "PRINT_RED"ERROR 0x%04X"PRINT_RESET"\n\r", stse_ret);
         apps_process_error(stse_ret);
     } else {
         printf("\n\n\r## Device Certificate Verified\n\r");
@@ -157,7 +159,7 @@ int main(void) {
 
     /* ##  Signature over challenge */
     stse_ret = stse_ecc_generate_signature(
-        &stse_handler,                  /* STSE handler */
+        &stse_handle,                  /* STSE handler */
         STSE_STATIC_PRIVATE_KEY_SLOT_0, /* Slot number */
         key_type,                       /* Certificate key type */
         challenge,                      /* Challenge */
@@ -165,7 +167,7 @@ int main(void) {
         signature);                     /* Challenge signature */
 
     if (stse_ret != STSE_OK) {
-        printf(PRINT_RED "\n\r## stse_ecc_generate_signature ERROR : 0x%04X", stse_ret);
+        printf("\n\r## stse_ecc_generate_signature : "PRINT_RED"ERROR 0x%04X"PRINT_RESET"\n\r", stse_ret);
         apps_process_error(stse_ret);
     }
     printf("\n\n\r## Device signature over Host challenge: ");
@@ -180,9 +182,9 @@ int main(void) {
         signature, (signature_size >> 1),
         &signature[signature_size >> 1], (signature_size >> 1));
     if (stse_ret != STSE_OK) {
-        printf(PRINT_RED "\n\n\r## stse_certificate_verify_signature ERROR : 0x%04X", stse_ret);
+        printf("\n\n\r## stse_certificate_verify_signature : "PRINT_RED"ERROR 0x%04X"PRINT_RESET"\n\r", stse_ret);
     } else {
-        printf(PRINT_GREEN "\n\n\r## Device Authenticated (Challenge signature verified successfully)");
+        printf("\n\n\r## Device Authentication : "PRINT_GREEN"SUCCESS"PRINT_RESET" (Challenge signature verified successfully)");
     }
 
     printf(PRINT_RESET "\n\r\n\r*#*# STMICROELECTRONICS #*#*\n\r");
