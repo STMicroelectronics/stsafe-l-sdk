@@ -1,7 +1,7 @@
 /**
  ******************************************************************************
  * \file    		main.c
- * \brief   		STSELIB project template
+ * \brief   		STSAFE-L010 project template
  * \author  		CS application team
  ******************************************************************************
  *           			COPYRIGHT 2022 STMicroelectronics
@@ -21,7 +21,7 @@
 
 /**
  * @brief  Main program entry point
- * @note   This is a template project for STSAFE-A120 examples
+ * @note   This is a template project for STSAFE-L010 examples
  *         Add your application code here
  * @retval Not applicable (infinite loop)
  */

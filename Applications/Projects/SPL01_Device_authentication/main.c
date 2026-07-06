@@ -4,7 +4,7 @@
  * @author  CS application team
  * @brief   STSAFE-L010 Device authentication example
  ******************************************************************************
- *           			COPYRIGHT 2022 STMicroelectronics
+ *                              COPYRIGHT 2022 STMicroelectronics
  *
  * This software is licensed under terms that can be found in the LICENSE file in
  * the root directory of this software component.
@@ -19,9 +19,9 @@
 
 /* Defines -------------------------------------------------------------------*/
 
-/* Root CA key used for STSE-L SPL01 */
+/* Root CA key used for STSAFE-L010 SPL01 */
 #define CA_SELF_SIGNED_CERTIFICATE_01                                                                   \
-    0x30, 0x82, 0x01, 0x67, 0x30, 0x82, 0x01, 0x19, 0xa0, 0x03, 0x02, 0x01, 0x02, 0x02, 0x01, 0x01,     \
+        0x30, 0x82, 0x01, 0x67, 0x30, 0x82, 0x01, 0x19, 0xa0, 0x03, 0x02, 0x01, 0x02, 0x02, 0x01, 0x01, \
         0x30, 0x05, 0x06, 0x03, 0x2b, 0x65, 0x70, 0x30, 0x4b, 0x31, 0x0b, 0x30, 0x09, 0x06, 0x03, 0x55, \
         0x04, 0x06, 0x13, 0x02, 0x4e, 0x4c, 0x31, 0x1e, 0x30, 0x1c, 0x06, 0x03, 0x55, 0x04, 0x0a, 0x0c, \
         0x15, 0x53, 0x54, 0x4d, 0x69, 0x63, 0x72, 0x6f, 0x65, 0x6c, 0x65, 0x63, 0x74, 0x72, 0x6f, 0x6e, \
@@ -64,52 +64,55 @@
  */
 int main(void) {
     stse_ReturnCode_t stse_ret = STSE_API_INVALID_PARAMETER;
-    stse_Handler_t stse_handler;
+    stse_Handler_t stse_handle;
     static const uint8_t ca_selfsigned_cert[] = {CA_SELF_SIGNED_CERTIFICATE_01};
 
     /* Initialize Terminal */
     apps_terminal_init(115200);
 
-    /* - Print Example instruction on terminal */
+    /* ## Print Example instruction on terminal */
     printf("----------------------------------------------------------------------------------------------------------------");
-    printf("\n\r-                                STSAFE-L010 Device Authentication Example                                     -");
+    printf("\n\r-                          STSAFE-L010 SPL01 Device Authentication Example                                     -");
     printf("\n\r----------------------------------------------------------------------------------------------------------------");
-    printf("\n\r- This example illustrates STSAFE-L010 device authentication process using Multi-Step approach.                -");
+    printf("\n\r- This example illustrates STSAFE-L010 device authentication process.                                          -");
     printf("\n\r- it can be taken as reference for building distant server authentication use cases.                           -");
     printf("\n\r----------------------------------------------------------------------------------------------------------------");
 
-    /* ## Initialize STSAFE-A1xx device handler */
-    stse_ret = stse_set_default_handler_value(&stse_handler);
+    printf("\n\n\r ( Press key to continue )");
+    uart_getc();
+
+    /* ## Initialize STSAFE-L010 device handler */
+    stse_ret = stse_set_default_handler_value(&stse_handle);
     if (stse_ret != STSE_OK) {
-        printf(PRINT_RED "\n\r ## stse_set_default_handler_value ERROR : 0x%04X\n\r", stse_ret);
+        printf("\n\n\r ## stse_set_default_handler_value : "PRINT_RED"ERROR 0x%04X"PRINT_RESET"\n\r", stse_ret);
         apps_process_error(stse_ret);
     }
 
-    stse_handler.device_type = STSAFE_L010;
-    stse_handler.io.busID = 1;
-    stse_handler.io.BusSpeed = 100;
-    stse_handler.io.Devaddr = 0x0C;
+    stse_handle.device_type = STSAFE_L010;
+    stse_handle.io.BusType = STSE_BUS_TYPE_I2C;
+    stse_handle.io.BusSpeed = 100;
+    stse_handle.io.Devaddr = 0x0C;
 
-    printf("\n\r - Initialize target STSAFE-L010");
-    stse_ret = stse_init(&stse_handler);
+    printf("\n\n\r ## Initialize target STSAFE-L010");
+    stse_ret = stse_init(&stse_handle);
     if (stse_ret != STSE_OK) {
-        printf(PRINT_RED "\n\r ## stse_init ERROR : 0x%04X\n\r", stse_ret);
+        printf("\n\r ## stse_init : "PRINT_RED"ERROR 0x%04X"PRINT_RESET"\n\r", stse_ret);
         apps_process_error(stse_ret);
     }
 
-    /* ## Authenticate target STSAFE-A120 device */
+    /* ## Authenticate target STSAFE-L010 device */
     stse_ret = stse_device_authenticate(
-        &stse_handler,
+        &stse_handle,
         ca_selfsigned_cert,
         STSAFE_CERTIFICATE_ZONE_0,
         STSE_STATIC_PRIVATE_KEY_SLOT_0);
 
     if (stse_ret != STSE_OK) {
-        printf(PRINT_RED "\n\n\r ## Device authentication over STSE-L SPL01 CA certificate  : Failed \n\r");
-        printf("\n\r\t o stse_device_authenticate ERROR : 0x%04X", stse_ret);
+        printf("\n\n\r ## Device authentication over STSAFE-L010 SPL01 CA certificate :"PRINT_RED" FAIL "PRINT_RESET"\n\r");
+        printf("\n\r\t o stse_device_authenticate"PRINT_RED": ERROR 0x%04X"PRINT_RESET, stse_ret);
         apps_process_error(stse_ret);
     } else {
-        printf(PRINT_GREEN "\n\n\r ## Device authentication over STSE-L SPL01 CA certificate : Successful\n\r");
+        printf("\n\n\r ## Device authentication over STSAFE-L010 SPL01 CA certificate :"PRINT_GREEN" SUCCESS "PRINT_RESET"\n\r");
     }
 
     while (1) {
